@@ -10,7 +10,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 app = Flask(__name__)
 
 # ======================
-# MODEL ARCHITECTURE
+# MODEL
 # ======================
 
 model = tf.keras.Sequential([
@@ -109,6 +109,7 @@ def home():
     result = None
     confidence = None
     tip = None
+    error = None
 
     if request.method == "POST":
 
@@ -116,51 +117,84 @@ def home():
 
         if file:
 
-            image = Image.open(file).convert("RGB")
+            try:
 
-            image_np = np.array(image)
+                # ======================
+                # READ IMAGE
+                # ======================
 
-            gray = cv2.cvtColor(
-                image_np,
-                cv2.COLOR_RGB2GRAY
-            )
+                image = Image.open(file).convert("RGB")
 
-            gray = cv2.resize(
-                gray,
-                (28, 28)
-            )
+                image_np = np.array(image)
 
-            gray = gray.astype("float32") / 255.0
+                # ======================
+                # PREPROCESS
+                # ======================
 
-            gray = gray.reshape(
-                1,
-                28,
-                28,
-                1
-            )
+                gray = cv2.cvtColor(
+                    image_np,
+                    cv2.COLOR_RGB2GRAY
+                )
 
-            prediction = model.predict(
-                gray,
-                verbose=0
-            )
+                gray = cv2.resize(
+                    gray,
+                    (28, 28)
+                )
 
-            predicted_class = np.argmax(
-                prediction
-            )
+                gray = cv2.GaussianBlur(
+                    gray,
+                    (3, 3),
+                    0
+                )
 
-            confidence = float(
-                np.max(prediction) * 100
-            )
+                gray = cv2.bitwise_not(gray)
 
-            result = classes[predicted_class]
+                gray = gray.astype(
+                    "float32"
+                ) / 255.0
 
-            tip = fashion_tips[result]
+                gray = gray.reshape(
+                    1,
+                    28,
+                    28,
+                    1
+                )
+
+                # ======================
+                # PREDICT
+                # ======================
+
+                prediction = model.predict(
+                    gray,
+                    verbose=0
+                )
+
+                predicted_class = np.argmax(
+                    prediction
+                )
+
+                confidence = float(
+                    np.max(prediction) * 100
+                )
+
+                result = classes[
+                    predicted_class
+                ]
+
+                tip = fashion_tips[
+                    result
+                ]
+
+            except Exception as e:
+
+                error = str(e)
 
     return render_template(
         "index.html",
         result=result,
         confidence=confidence,
-        tip=tip
+        tip=tip,
+        error=error
     )
 
 # ======================
@@ -170,7 +204,10 @@ def home():
 if __name__ == "__main__":
 
     port = int(
-        os.environ.get("PORT", 10000)
+        os.environ.get(
+            "PORT",
+            10000
+        )
     )
 
     app.run(
