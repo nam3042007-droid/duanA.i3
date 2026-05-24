@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Fashion AI</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>👗 Fashion AI Recognition</h1>
+
+        <p>Upload ảnh để AI nhận diện outfit</p>
+
+        <form method="POST" enctype="multipart/form-data">
+
+            <input type="file" name="file" required>
+
+            <br><br>
+
+            <button type="submit">
+                Predict
+            </button>
+
+        </form>
+
+        {% if result %}
+
+        <div class="result">
+
+            <h2>👕 Loại đồ: {{ result }}</h2>
+
+            <h3>
+                🎯 Độ chính xác:
+                {{ confidence }}%
+            </h3>
+
+            <div class="tip-box">
+                {{ tip }}
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</body>
+
+</html>
