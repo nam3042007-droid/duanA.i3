@@ -1,7 +1,7 @@
 streamlit==1.45.1
-tensorflow-cpu==2.16.1
+tensorflow-cpu==2.18.0
 opencv-python-headless
 numpy
 pillow
 h5py
-protobuf==4.25.3
+protobuf
