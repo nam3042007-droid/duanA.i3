@@ -1,7 +1,6 @@
-streamlit
-tensorflow==2.17.0
-opencv-python-headless
+flask
+tensorflow
 numpy
+opencv-python
 pillow
-h5py
-protobuf
+gunicorn
