@@ -5,25 +5,64 @@ import cv2
 from PIL import Image
 import os
 
-# ======================
-# TẮT WARNING TF
-# ======================
-
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-
-# ======================
-# FLASK APP
-# ======================
 
 app = Flask(__name__)
 
 # ======================
-# LOAD MODEL
+# MODEL ARCHITECTURE
 # ======================
 
-model = tf.keras.models.load_model(
-    "model/fashion_model.h5",
-    compile=False
+model = tf.keras.Sequential([
+
+    tf.keras.layers.Input(
+        shape=(28, 28, 1)
+    ),
+
+    tf.keras.layers.Conv2D(
+        32,
+        (3, 3),
+        activation="relu"
+    ),
+
+    tf.keras.layers.MaxPooling2D(
+        (2, 2)
+    ),
+
+    tf.keras.layers.Conv2D(
+        64,
+        (3, 3),
+        activation="relu"
+    ),
+
+    tf.keras.layers.MaxPooling2D(
+        (2, 2)
+    ),
+
+    tf.keras.layers.Flatten(),
+
+    tf.keras.layers.Dense(
+        128,
+        activation="relu"
+    ),
+
+    tf.keras.layers.Dropout(
+        0.3
+    ),
+
+    tf.keras.layers.Dense(
+        10,
+        activation="softmax"
+    )
+
+])
+
+# ======================
+# LOAD WEIGHTS
+# ======================
+
+model.load_weights(
+    "model/fashion_model.h5"
 )
 
 # ======================
@@ -77,67 +116,45 @@ def home():
 
         if file:
 
-            try:
+            image = Image.open(file).convert("RGB")
 
-                # ======================
-                # ĐỌC ẢNH
-                # ======================
+            image_np = np.array(image)
 
-                image = Image.open(file).convert("RGB")
+            gray = cv2.cvtColor(
+                image_np,
+                cv2.COLOR_RGB2GRAY
+            )
 
-                image_np = np.array(image)
+            gray = cv2.resize(
+                gray,
+                (28, 28)
+            )
 
-                # ======================
-                # PREPROCESS
-                # ======================
+            gray = gray.astype("float32") / 255.0
 
-                gray = cv2.cvtColor(
-                    image_np,
-                    cv2.COLOR_RGB2GRAY
-                )
+            gray = gray.reshape(
+                1,
+                28,
+                28,
+                1
+            )
 
-                gray = cv2.resize(
-                    gray,
-                    (28, 28)
-                )
+            prediction = model.predict(
+                gray,
+                verbose=0
+            )
 
-                gray = gray.astype("float32") / 255.0
+            predicted_class = np.argmax(
+                prediction
+            )
 
-                gray = gray.reshape(
-                    1,
-                    28,
-                    28,
-                    1
-                )
+            confidence = float(
+                np.max(prediction) * 100
+            )
 
-                # ======================
-                # PREDICT
-                # ======================
+            result = classes[predicted_class]
 
-                prediction = model.predict(
-                    gray,
-                    verbose=0
-                )
-
-                predicted_class = np.argmax(
-                    prediction
-                )
-
-                confidence = float(
-                    np.max(prediction) * 100
-                )
-
-                result = classes[predicted_class]
-
-                tip = fashion_tips[result]
-
-            except Exception as e:
-
-                result = f"ERROR: {str(e)}"
-
-    # ======================
-    # RENDER
-    # ======================
+            tip = fashion_tips[result]
 
     return render_template(
         "index.html",
@@ -147,7 +164,7 @@ def home():
     )
 
 # ======================
-# RUN APP
+# RUN
 # ======================
 
 if __name__ == "__main__":
