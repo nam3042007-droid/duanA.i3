@@ -33,7 +33,7 @@
         </h1>
 
         <p class="subtitle">
-            Upload outfit để AI nhận diện
+            Upload ảnh outfit để AI nhận diện
         </p>
 
         <form method="POST"
@@ -70,6 +70,16 @@
             <div class="tip-box">
                 {{ tip }}
             </div>
+
+        </div>
+
+        {% endif %}
+
+        {% if error %}
+
+        <div class="error-box">
+
+            {{ error }}
 
         </div>
 
