@@ -5,3 +5,4 @@ opencv-python-headless
 pillow
 gunicorn
 h5py==3.7.0
+protobuf==3.20.3
