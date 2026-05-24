@@ -3,7 +3,8 @@ import tensorflow as tf
 import numpy as np
 import cv2
 from PIL import Image
-
+import os
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 # ======================
 # CẤU HÌNH WEB
 # ======================
