@@ -5,48 +5,25 @@ import cv2
 from PIL import Image
 import os
 
+# ======================
+# TẮT WARNING TF
+# ======================
+
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
+# ======================
+# FLASK APP
+# ======================
 
 app = Flask(__name__)
 
 # ======================
-# TẠO MODEL THỦ CÔNG
+# LOAD MODEL
 # ======================
 
-model = tf.keras.Sequential([
-
-    tf.keras.layers.Input(
-        shape=(28, 28, 1)
-    ),
-
-    tf.keras.layers.Conv2D(
-        32,
-        (3, 3),
-        activation="relu"
-    ),
-
-    tf.keras.layers.MaxPooling2D((2, 2)),
-
-    tf.keras.layers.Flatten(),
-
-    tf.keras.layers.Dense(
-        128,
-        activation="relu"
-    ),
-
-    tf.keras.layers.Dense(
-        10,
-        activation="softmax"
-    )
-
-])
-
-# ======================
-# LOAD WEIGHTS
-# ======================
-
-model.load_weights(
-    "model/fashion_model.h5"
+model = tf.keras.models.load_model(
+    "model/fashion_model.h5",
+    compile=False
 )
 
 # ======================
@@ -96,36 +73,71 @@ def home():
 
     if request.method == "POST":
 
-        file = request.files["file"]
+        file = request.files.get("file")
 
         if file:
 
-            image = Image.open(file).convert("RGB")
+            try:
 
-            image_np = np.array(image)
+                # ======================
+                # ĐỌC ẢNH
+                # ======================
 
-            gray = cv2.cvtColor(
-                image_np,
-                cv2.COLOR_RGB2GRAY
-            )
+                image = Image.open(file).convert("RGB")
 
-            gray = cv2.resize(gray, (28, 28))
+                image_np = np.array(image)
 
-            gray = gray / 255.0
+                # ======================
+                # PREPROCESS
+                # ======================
 
-            gray = gray.reshape(1, 28, 28, 1)
+                gray = cv2.cvtColor(
+                    image_np,
+                    cv2.COLOR_RGB2GRAY
+                )
 
-            prediction = model.predict(gray)
+                gray = cv2.resize(
+                    gray,
+                    (28, 28)
+                )
 
-            predicted_class = np.argmax(prediction)
+                gray = gray.astype("float32") / 255.0
 
-            confidence = float(
-                np.max(prediction) * 100
-            )
+                gray = gray.reshape(
+                    1,
+                    28,
+                    28,
+                    1
+                )
 
-            result = classes[predicted_class]
+                # ======================
+                # PREDICT
+                # ======================
 
-            tip = fashion_tips[result]
+                prediction = model.predict(
+                    gray,
+                    verbose=0
+                )
+
+                predicted_class = np.argmax(
+                    prediction
+                )
+
+                confidence = float(
+                    np.max(prediction) * 100
+                )
+
+                result = classes[predicted_class]
+
+                tip = fashion_tips[result]
+
+            except Exception as e:
+
+                result = f"ERROR: {str(e)}"
+
+    # ======================
+    # RENDER
+    # ======================
 
     return render_template(
         "index.html",
@@ -135,12 +147,14 @@ def home():
     )
 
 # ======================
-# RUN
+# RUN APP
 # ======================
 
 if __name__ == "__main__":
 
-    port = int(os.environ.get("PORT", 10000))
+    port = int(
+        os.environ.get("PORT", 10000)
+    )
 
     app.run(
         host="0.0.0.0",
