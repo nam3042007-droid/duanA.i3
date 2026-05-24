@@ -45,7 +45,9 @@ h1, h2, h3 {
 # LOAD MODEL
 # ======================
 
-model = tf.keras.models.load_model("fashion_model.h5")
+model = tf.keras.models.load_model(
+    "model/fashion_model.h5"
+)
 
 # ======================
 # LABELS
