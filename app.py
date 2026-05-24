@@ -10,10 +10,42 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 app = Flask(__name__)
 
 # ======================
-# LOAD MODEL
+# TẠO MODEL THỦ CÔNG
 # ======================
 
-model = tf.keras.models.load_model(
+model = tf.keras.Sequential([
+
+    tf.keras.layers.Input(
+        shape=(28, 28, 1)
+    ),
+
+    tf.keras.layers.Conv2D(
+        32,
+        (3, 3),
+        activation="relu"
+    ),
+
+    tf.keras.layers.MaxPooling2D((2, 2)),
+
+    tf.keras.layers.Flatten(),
+
+    tf.keras.layers.Dense(
+        128,
+        activation="relu"
+    ),
+
+    tf.keras.layers.Dense(
+        10,
+        activation="softmax"
+    )
+
+])
+
+# ======================
+# LOAD WEIGHTS
+# ======================
+
+model.load_weights(
     "model/fashion_model.h5"
 )
 
